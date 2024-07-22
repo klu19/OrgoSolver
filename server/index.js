@@ -31,12 +31,22 @@ app.post("/todos", async (req, res) => {
     try {
         const { starting_material, final_product } = req.body;
 
-        const result = await runPythonScript(starting_material, final_product);
+        const reactions = {
+            "reactions": [
+                {
+                    "starting_material": "Ethanol",
+                    "final_product": "Acetaldehyde",
+                    "reaction": "Alcohol Oxidation",
+                }
+            ]
+        }
+
+        //const result = await runPythonScript(starting_material, final_product);
 
         // Save the result to your database if needed
         const newTodo = await pool.query(
-            "INSERT INTO todo (starting_material, final_product, reaction) VALUES($1, $2, $3) RETURNING *",
-            [starting_material, final_product, result.reaction]
+            "INSERT INTO todo (starting_material, final_product, reactions) VALUES($1, $2, $3) RETURNING *",
+            [starting_material, final_product, reactions]
         );
         
         res.json(newTodo.rows[0]);
