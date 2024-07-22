@@ -2,21 +2,43 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const pool = require("./db");
+const { execFile } = require("child_process");
+const path = require("path");
 
 //middleware
 app.use(cors());
 app.use(express.json()); //req.body
+
+// Function to run the Python script
+const runPythonScript = (starting_material, final_product) => {
+    return new Promise((resolve, reject) => {
+        const scriptPath = path.join(__dirname, "ml", "ml_script.py");
+        execFile("python3", [scriptPath, starting_material, final_product], (error, stdout, stderr) => {
+            if (error) {
+                console.error("Python script error:", stderr);
+                return reject(error);
+            }
+            console.log("Python script output:", stdout);
+            resolve(JSON.parse(stdout));
+        });
+    });
+};
 
 //ROUTES//
 
 //create a todo
 app.post("/todos", async (req, res) => {
     try {
-        const { starting_material, final_product } = req.body; 
+        const { starting_material, final_product } = req.body;
+
+        const result = await runPythonScript(starting_material, final_product);
+
+        // Save the result to your database if needed
         const newTodo = await pool.query(
-            "INSERT INTO todo (starting_material, final_product) VALUES($1, $2) RETURNING *", 
-            [starting_material, final_product]
+            "INSERT INTO todo (starting_material, final_product, reaction) VALUES($1, $2, $3) RETURNING *",
+            [starting_material, final_product, result.reaction]
         );
+        
         res.json(newTodo.rows[0]);
     } catch (err) {
         console.error(err.message);
@@ -49,10 +71,17 @@ app.put("/todos/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const { starting_material, final_product } = req.body;
+        
+        // Run the Python script
+        const result = await runPythonScript(starting_material, final_product);
+        
+        // Update the todo with the new result
         const updateTodo = await pool.query(
-            "UPDATE todo SET starting_material = $1, final_product = $2 WHERE todo_id = $3", 
-            [starting_material, final_product, id]
+            "UPDATE todo SET starting_material = $1, final_product = $2, reaction = $3 WHERE todo_id = $4",
+            [starting_material, final_product, result.reaction, id]
         );
+        
+
         res.json("Todo was updated");
     } catch (err) {
         console.error(err.message);
