@@ -1,0 +1,15 @@
+canvas {
+    border: 1px solid black;
+  }
+  
+  .toolbar {
+    margin-bottom: 10px;
+  }
+  
+  .element {
+    cursor: pointer;
+    padding: 5px;
+    border: 1px solid black;
+    margin-right: 5px;
+  }
+  

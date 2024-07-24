@@ -38,6 +38,12 @@ app.post("/todos", async (req, res) => {
                     "final_product": "Acetaldehyde",
                     "reaction": "Alcohol Oxidation",
                 }
+                ,
+                {
+                    "starting_material": "Ethanol",
+                    "final_product": "Acetaldehyde",
+                    "reaction": "Alcohol Oxidation",
+                }
             ]
         }
 
